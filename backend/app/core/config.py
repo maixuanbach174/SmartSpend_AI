@@ -7,7 +7,6 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_SERVER: str = "db"
     POSTGRES_PORT: str = "5432"
-    
     DATABASE_URL: PostgresDsn | None = None
     
     class Config:
