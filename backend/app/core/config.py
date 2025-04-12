@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     POSTGRES_SERVER: str = "db"
     POSTGRES_PORT: str = "5432"
     DATABASE_URL: PostgresDsn | None = None
-    
+    DATABASE_URL_TEST: PostgresDsn | None = None
     class Config:
         env_file = "../.env"
         case_sensitive = True
@@ -17,5 +17,7 @@ class Settings(BaseSettings):
         super().__init__(**values)
         if not self.DATABASE_URL:
             self.DATABASE_URL = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        if not self.DATABASE_URL_TEST:
+            self.DATABASE_URL_TEST = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}_TEST"
 
 settings = Settings()

@@ -1,145 +1,339 @@
-from datetime import date, time
+from datetime import date, time, datetime
 from sqlmodel import Field, Relationship, SQLModel
 from typing import List, Optional
-from pydantic import BaseModel
+from enum import Enum
 
-class Account(SQLModel, table=True):
-    __tablename__ = "account"
-    account_id: int | None = Field(default=None, primary_key=True)
+class RecurrenceType(str, Enum):
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    ABSOLUTE_MONTHLY = "absoluteMonthly"
+    RELATIVE_MONTHLY = "relativeMonthly"
+    ABSOLUTE_YEARLY = "absoluteYearly"
+    RELATIVE_YEARLY = "relativeYearly"
+
+class DayOfWeek(str, Enum):
+    SUNDAY = "sunday"
+    MONDAY = "monday"
+    TUESDAY = "tuesday"
+    WEDNESDAY = "wednesday"
+    THURSDAY = "thursday"
+    FRIDAY = "friday"
+    SATURDAY = "saturday"
+
+class WeekIndex(str, Enum):
+    FIRST = "first"
+    SECOND = "second"
+    THIRD = "third"
+    FOURTH = "fourth"
+    LAST = "last"
+
+class Category(str, Enum):
+    # Housing
+    RENT = "rent"
+    MORTGAGE = "mortgage"
+    UTILITIES = "utilities"  # (electricity, water, gas)
+    INTERNET = "internet"
+    PHONE = "phone"
+    
+    # Transportation
+    FUEL = "fuel"
+    PUBLIC_TRANSPORT = "public_transport"
+    CAR_MAINTENANCE = "car_maintenance"
+    PARKING = "parking"
+    
+    # Daily Living
+    GROCERIES = "groceries"
+    DINING_OUT = "dining_out"
+    SHOPPING = "shopping"  # (clothing, electronics, etc.)
+    
+    # Health
+    HEALTH_INSURANCE = "health_insurance"
+    MEDICAL = "medical"
+    PHARMACY = "pharmacy"
+    GYM = "gym"
+    
+    # Entertainment
+    SUBSCRIPTIONS = "subscriptions"  # (Netflix, Spotify)
+    TRAVEL = "travel"
+    HOBBIES = "hobbies"
+    
+    # Financial Obligations
+    LOAN_PAYMENT = "loan_payment"
+    CREDIT_CARD = "credit_card"
+    INSURANCE = "insurance"  # (car, home, life)
+    
+    # Miscellaneous
+    EDUCATION = "education"
+    CHARITY = "charity"
+    OTHER = "other"
+
+class IncomeType(str, Enum):
+    SALARY = "salary"
+    BONUS = "bonus"
+    COMMISSION = "commission"
+    
+    # Investments
+    INVESTMENT = "investment"
+    DIVIDENDS = "dividends"
+    INTEREST = "interest"  # (savings, bonds)
+    
+    # Government/Retirement
+    PENSION = "pension"
+    SOCIAL_SECURITY = "social_security"
+    UNEMPLOYMENT = "unemployment"
+    
+    # Side Income
+    FREELANCE = "freelance"
+    RENTAL_INCOME = "rental_income"
+    SIDE_HUSTLE = "side_hustle"
+    
+    # Other
+    GIFTS = "gifts"
+    REFUNDS = "refunds"
+    OTHER = "other"
+
+class Priority(int, Enum):
+    LOW = 0
+    MEDIUM = 1
+    HIGH = 2
+
+class Gender(int, Enum):
+    UNSPECIFIED = 0
+    MALE = 1
+    FEMALE = 2
+    NON_BINARY = 3  # Optional expansion
+
+class AccountBase(SQLModel):
+    # __tablename__ = "account"
+    # account_id: Optional[int] = Field(default=None, primary_key=True)
     first_name: str = Field(max_length=255, index=True)
     last_name: str = Field(max_length=255)
     dob: date
-    gender: int = Field(ge=0, le=2)
+    gender: Gender
     country: str = Field(max_length=255)
     email: str = Field(max_length=255, index=True)
     start_date: date = Field(default=date.today())
-    total_spend_in_month: float = Field(default=0.0, ge=0.0)
-    total_income_in_month: float = Field(default=0.0, ge=0.0)
 
-class Category(SQLModel, table=True):
-    __tablename__ = "category"
-    category_id: int | None = Field(default=None, primary_key=True)
+class Account(AccountBase, table=True):
+    __tablename__ = "account"
+    account_id: Optional[int] = Field(default=None, primary_key=True)
+
+class AccountCreate(AccountBase):
+    pass
+
+class AccountPublic(AccountBase):
+    account_id: int
+
+#######################
+
+
+# class RecurrencePattern(SQLModel, table=True):
+#     __tablename__ = "recurrence_pattern"
+#     pattern_id: int = Field(primary_key=True)
+#     type: RecurrenceType
+#     interval: int = Field(default=1, ge=1, le=99)
+#     month: Optional[int] = Field(default=None, le=12, ge=1)
+#     dayOfMonth: Optional[int] = Field(default=None, ge=1, le=31)
+#     index: Optional[WeekIndex] = Field(default=None)
+#     daysOfWeek: List["RecurrencePatternDay"] = Relationship(back_populates="recurrencePattern")
+#     pattern_schedule: "Schedule" = Relationship(back_populates="schedule_pattern")
+
+# class RecurrencePatternDay(SQLModel, table=True):
+#     __tablename__ = "recurrence_pattern_day"
+#     pattern_id: Optional[int] = Field(default=None, foreign_key="recurrence_pattern.pattern_id", primary_key=True)
+#     day: DayOfWeek = Field(primary_key=True)
+#     recurrencePattern: "RecurrencePattern" = Relationship(back_populates="daysOfWeek")
+
+# class Schedule(SQLModel, table=True):
+#     schedule_id: Optional[int] = Field(default=None, primary_key=True)
+#     pattern_id: Optional[int] = Field(default=None, foreign_key="recurrence_pattern.pattern_id")
+#     is_active: bool = Field(default=True)
+#     start_date: date = Field(default=date.today())
+#     end_date: Optional[date] = None
+#     start_time: time = Field(default=time(0, 0, 0))
+#     end_time: Optional[time] = None
+
+#     schedule_pattern: "RecurrencePattern" = Relationship(back_populates="pattern_schedule")
+#     schedule_activity: "Activity" = Relationship(back_populates="activity_schedule")
+
+# class Activity(SQLModel, table=True):
+#     __tablename__ = "activity"
+#     activity_id: Optional[int] = Field(default=None, primary_key=True)
+#     account_id: int = Field(foreign_key="account.account_id", index=True)
+#     name: str = Field(max_length=255, index=True)
+#     description: Optional[str] = None
+#     expense: float = Field(ge=0.0)
+#     schedule_id: Optional[int] = Field(default=None,foreign_key="schedule.schedule_id")
+#     location: Optional[str] = Field(max_length=255)
+#     category: Category
+
+#     activity_schedule: Schedule = Relationship(back_populates="schedule_activity")
+
+#####################
+
+class ActivityBase(SQLModel):
     name: str = Field(max_length=255, index=True)
-    total_spend: float = Field(default=0.0, ge=0.0)
-    account_id: int = Field(foreign_key="account.account_id")
+    description: Optional[str] = Field(default=None)
+    expense: float = Field(ge=0.0)
+    location: Optional[str] = Field(default=None, max_length=255)
+    category: Category
 
-class CategoryDetail(SQLModel, table=True):
-    __tablename__ = "category_detail"
-    category_detail_id: int | None = Field(default=None, primary_key=True)
-    category_id: int = Field(foreign_key="category.category_id")
-    name: str = Field(max_length=255, index=True)
-    total_spend: float = Field(default=0.0, ge=0.0)
-    priority: int = Field(ge=0, le=2)
-    account_id: int = Field(foreign_key="account.account_id")
-
-class Schedule(SQLModel, table=True):
-    schedule_id: int | None = Field(default=None, primary_key=True)
-    account_id: int = Field(foreign_key="account.account_id")
-    start_date: date = Field(default=date.today())
-    end_date: date = Field(default=date.today())
+class ScheduleBase(SQLModel):
     is_active: bool = Field(default=True)
-    # 1: once, 4: daily, 8: weekly, 16: monthly, 32: monthly(relative)
-    freq_type: int = Field(default=1, ge=1, le=32)
-    freq_interval: int = Field(default=0, ge=0)
-     # 1: at the specified time, 2: seconds, 4, minutes, 8: hours
-    time_type: int = Field(default=1, ge=1, le=8)
-    time_interval: int = Field(default=0, ge=0)
-    start_time: time = Field(default=time(0, 0, 0))
+    start_date: date = Field(default=date.today())
+    end_date: Optional[date] = Field(default=None)
+    start_time: time = Field(default_factory=lambda: datetime.now().time())
+    end_time: Optional[time] = Field(default=None)
 
-class Activity(SQLModel, table=True):
+class RecurrencePatternBase(SQLModel):
+    # type: Optional[RecurrenceType]
+    interval: int = Field(default=1, ge=1, le=99)
+
+class RecurrencePatternDayBase(SQLModel):
+    day: DayOfWeek = Field(primary_key=True)
+
+class RecurrencePattern(RecurrencePatternBase, table=True):
+    __tablename__ = "recurrence_pattern"
+    pattern_id: Optional[int] = Field(default=None, primary_key=True)
+    month: Optional[int] = Field(default=None, le=12, ge=1)
+    dayOfMonth: Optional[int] = Field(default=None, ge=1, le=31)
+    index: Optional[WeekIndex] = Field(default=None)
+    type: Optional[RecurrenceType] = Field(default=None)
+    daysOfWeek: List["RecurrencePatternDay"] = Relationship(back_populates="recurrencePattern")
+    pattern_schedule: "Schedule" = Relationship(back_populates="schedule_pattern")   
+
+class RecurrencePatternDay(RecurrencePatternDayBase, table=True):
+    __tablename__ = "recurrence_pattern_day"
+    pattern_id: Optional[int] = Field(default=None, foreign_key="recurrence_pattern.pattern_id", primary_key=True)
+    recurrencePattern: "RecurrencePattern" = Relationship(back_populates="daysOfWeek")
+
+class Schedule(ScheduleBase, table=True):
+    __tablename__ = "schedule"
+    schedule_id: Optional[int] = Field(default=None, primary_key=True)
+    pattern_id: Optional[int] = Field(default=None, foreign_key="recurrence_pattern.pattern_id")
+    schedule_pattern: "RecurrencePattern" = Relationship(back_populates="pattern_schedule")
+    schedule_activity: "Activity" = Relationship(back_populates="activity_schedule")
+ 
+class Activity(ActivityBase, table=True):
     __tablename__ = "activity"
-    activity_id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(max_length=255, index=True)
-    category_detail_id: int = Field(foreign_key="category_detail.category_detail_id")
-    account_id: int = Field(foreign_key="account.account_id")
-    description: str | None = Field(max_length=255)
-    location: str | None = Field(max_length=255)
-    schedule_id: int = Field(foreign_key="schedule.schedule_id")
+    activity_id: Optional[int] = Field(default=None, primary_key=True)
+    account_id: Optional[int] = Field(default=None, foreign_key="account.account_id", index=True)
+    schedule_id: Optional[int] = Field(default=None,foreign_key="schedule.schedule_id")
+    activity_schedule: Optional["Schedule"] = Relationship(back_populates="schedule_activity")
 
-class BillCreate(BaseModel):
-    __tablename__ = "bill"
-    name: str
-    category_name: str
-    description: Optional[str] = None
-    price: float
-    priority: int
-    recipient: Optional[str] = None
-    schedule_id: int
+class RecurrencePatternDayPublic(RecurrencePatternDayBase):
+    pattern_id: int
 
-class Bill(SQLModel, table=True):
-    __tablename__ = "bill"
-    bill_id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(max_length=255, index=True)
-    category_detail_id: int = Field(foreign_key="category_detail.category_detail_id")
-    account_id: int = Field(foreign_key="account.account_id")
-    description: str | None = Field(max_length=255)
-    price: float = Field(ge=0.0)
-    schedule_id: int = Field(foreign_key="schedule.schedule_id")
-    priority: int = Field(ge=0, le=2)
-    recipient: str | None = Field(max_length=255)
+class RecurrencePatternPublic(RecurrencePatternBase):
+    pattern_id: int
+    type: RecurrenceType
+    daysOfWeek: Optional[List[RecurrencePatternDay]] = Field(default=None)
+    month: Optional[int] = Field(default=None, le=12, ge=1)
+    dayOfMonth: Optional[int] = Field(default=None, ge=1, le=31)
+    index: Optional[WeekIndex] = Field(default=None)
+
+class SchedulePublic(ScheduleBase):
+    schedule_id: int 
+    pattern_id: int 
+    pattern: Optional[RecurrencePatternPublic]
+
+class ActivityPublic(ActivityBase):
+    activity_id: int
+    account_id: int
+    schedule_id: Optional[int]
+    activity_schedule: Optional[SchedulePublic]
+
+class OnceActivityCreate(ActivityBase):
+    pass
+
+class DailyRecurrencePatternCreate(RecurrencePatternBase):
+    interval: int = Field(default=1, ge=1, le=99)
+
+class DailyScheduleCreate(ScheduleBase):
+    schedule_pattern: DailyRecurrencePatternCreate
+
+class DailyActivityCreate(ActivityBase):
+    schedule: DailyScheduleCreate
+
+class WeelyRecurrencePatternDayCreate(RecurrencePatternDayBase):
+    day: DayOfWeek = Field(primary_key=True)
+
+class WeeklyRecurrencePatternCreate(RecurrencePatternBase):
+    interval: int = Field(default=1, ge=1, le=99)
+    daysOfWeek: List[WeelyRecurrencePatternDayCreate]
+
+class WeeklyScheduleCreate(ScheduleBase):
+    schedule_pattern: WeeklyRecurrencePatternCreate
+
+class WeeklyActivityCreate(ActivityBase):
+    schedule: WeeklyScheduleCreate
+
+class AbsoluteMonthlyRecurrencePatternCreate(RecurrencePatternBase):
+    interval: int = Field(default=1, ge=1, le=99)
+    dayOfMonth: int = Field(default=None, ge=1, le=31)
+
+class AbsoluteMonthlyScheduleCreate(ScheduleBase):
+    schedule_pattern: AbsoluteMonthlyRecurrencePatternCreate
+
+class AbsoluteMonthlyActivityCreate(ActivityBase):
+    schedule: AbsoluteMonthlyScheduleCreate
+
+class RelativeMonthlyRecurrencePatternCreate(RecurrencePatternBase):
+    interval: int = Field(default=1, ge=1, le=99)
+    daysOfWeek: List[WeelyRecurrencePatternDayCreate]
+    index: WeekIndex
+
+class RelativeMonthlyScheduleCreate(ScheduleBase):
+    schedule_pattern: RelativeMonthlyRecurrencePatternCreate
+
+class RelativeMonthlyActivityCreate(ActivityBase):
+    schedule: RelativeMonthlyScheduleCreate
+
+class AbsoluteYearlyRecurrencePatternCreate(RecurrencePatternBase):
+    interval: int = Field(default=1, ge=1, le=99)
+    month: int = Field(default=None, le=12, ge=1)
+    dayOfMonth: int = Field(default=None, ge=1, le=31)
+
+class AbsoluteYearlyScheduleCreate(ScheduleBase):
+    schedule_pattern: AbsoluteYearlyRecurrencePatternCreate
+
+class AbsoluteYearlyActivityCreate(ActivityBase):
+    schedule: AbsoluteYearlyScheduleCreate
+
+class RelativeYearlyRecurrencePatternCreate(RecurrencePatternBase):
+    interval: int = Field(default=1, ge=1, le=99)
+    month: int = Field(default=None, le=12, ge=1)
+    daysOfWeek: List[WeelyRecurrencePatternDayCreate]
+    index: WeekIndex
+
+class RelativeYearlyScheduleCreate(ScheduleBase):
+    schedule_pattern: RelativeYearlyRecurrencePatternCreate
+    
+class RelativeYearlyActivityCreate(ActivityBase):
+    schedule: RelativeYearlyScheduleCreate
+
+
+
+####################
 
 class TargetBudget(SQLModel, table=True):
     __tablename__ = "target_budget"
-    target_budget_id: int | None = Field(default=None, primary_key=True)
-    category_detail_id: int = Field(foreign_key="category_detail.category_detail_id")
-    account_id: int = Field(foreign_key="account.account_id")
+    target_budget_id: Optional[int] = Field(default=None, primary_key=True)
+    account_id: int = Field(foreign_key="account.account_id", index=True)
     amount: float = Field(ge=0.0)
-    finish_date: date | None = Field(default=date.today())
-    is_achieved: bool = Field(default=False)
-    is_active: bool = Field(default=True)
-    priority: int = Field(ge=0, le=2)
-
-class IncomeType(SQLModel, table=True):
-    __tablename__ = "income_type"
-    income_type_id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(max_length=255, index=True)
-    total_income: float = Field(ge=0.0)
-    account_id: int = Field(foreign_key="account.account_id")
+    targetDate: Optional[date] = Field(default=date.today())
+    finished: bool = Field(default=False)
+    enabled: bool = Field(default=True)
+    priority: Priority = Field(default=Priority.MEDIUM)
+    category: Category 
 
 class Income(SQLModel, table=True):
     __tablename__ = "income"
-    income_id: int | None = Field(default=None, primary_key=True)
+    income_id: Optional[int] = Field(default=None, primary_key=True)
+    account_id: int = Field(foreign_key="account.account_id", index=True)
     name: str = Field(max_length=255, index=True)
-    income_type_id: int = Field(foreign_key="income_type.income_type_id")
-    account_id: int = Field(foreign_key="account.account_id")
-    amount: float = Field(ge=0.0)
-    schedule_id: int = Field(foreign_key="schedule.schedule_id")
-    description: str | None = Field(max_length=255)
-    source: str | None = Field(max_length=255)
-
-class ActivityBill(SQLModel, table=True):
-    __tablename__ = "activity_bill"
-    activity_id: int = Field(foreign_key="activity.activity_id", primary_key=True)
-    bill_id: int = Field(foreign_key="bill.bill_id", primary_key=True)
-    account_id: int = Field(foreign_key="account.account_id")
-
-# Response Models
-class BillResponse(BaseModel):
-    bill_id: int
-    name: str
-    category_detail_id: int
-    account_id: int
+    incomeType: IncomeType
+    schedule_id: Optional[int] = Field(foreign_key="schedule.schedule_id")
     description: Optional[str] = None
-    price: float
-    schedule_id: int
-    priority: int
-    recipient: Optional[str] = None
-
-class BudgetProgressResponse(BaseModel):
-    target_amount: float
-    total_spent: float
-    remaining: float
-    progress_percentage: float
-
-class IncomeSummaryResponse(BaseModel):
-    total_income: float
-    income_by_type: dict[str, float]
-
-class SpendingTrendsResponse(BaseModel):
-    monthly_spending: List[dict]
-    start_date: date
-    end_date: date
-
-class CategorySpendingResponse(BaseModel):
-    total_spending: float
-    category_breakdown: dict[str, dict[str, float]]
+    amount: float = Field(ge=0.0)
+    source: Optional[str] = None

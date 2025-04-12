@@ -1,8 +1,7 @@
 from fastapi import Depends, FastAPI
+from .routers import account, activity
 
-from .routers import income, bill, target_budget
-
-from .dependencies import get_query_token, get_token_header
+from .dependencies import get_query_token
 from .internal import admin
 from .core.db import create_database, engine
 from contextlib import asynccontextmanager
@@ -14,16 +13,9 @@ async def lifespan(app: FastAPI):
     yield
     engine.dispose()
 
-app = FastAPI(dependencies=[Depends(get_query_token)], lifespan=lifespan)
+# app = FastAPI(dependencies=[Depends(get_query_token)], lifespan=lifespan)
+app = FastAPI(lifespan=lifespan)
 
-app.include_router(
-    admin.router,
-    prefix="/admin",
-    tags=["admin"],
-    dependencies=[Depends(get_token_header)],
-    responses={418: {"description": "I'm a teapot"}},
-)
-
-app.include_router(router=income.router)
-app.include_router(router=bill.router)
-app.include_router(router=target_budget.router)
+app.include_router(router=admin.router)
+app.include_router(router=account.router)
+app.include_router(router=activity.router)
