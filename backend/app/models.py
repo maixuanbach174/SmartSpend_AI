@@ -2,6 +2,10 @@ from datetime import date, time, datetime
 from sqlmodel import Field, Relationship, SQLModel
 from typing import List, Optional
 from enum import Enum
+from pydantic import BaseModel
+from typing import List, Optional
+
+
 
 class RecurrenceType(str, Enum):
     DAILY = "daily"

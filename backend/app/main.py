@@ -1,5 +1,5 @@
 from fastapi import Depends, FastAPI
-from .routers import account, activity
+from .routers import account, activity, voice
 
 from .dependencies import get_query_token
 from .internal import admin
@@ -17,5 +17,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(router=admin.router)
-app.include_router(router=account.router)
+# app.include_router(router=account.router)
 app.include_router(router=activity.router)
+app.include_router(router=voice.router)
