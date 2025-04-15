@@ -1,4 +1,5 @@
 from fastapi import Depends, FastAPI
+
 from .routers import account, activity
 
 from .dependencies import get_query_token
