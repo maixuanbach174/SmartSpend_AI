@@ -27,9 +27,9 @@ const Login: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('access_token', data.access_token);
-        window.location.href = '/account/1';
-      } else {
+        document.cookie = `access_token=${data.access_token}; path=/;`;
+        window.location.href = '/account/1'; // or homepage
+      }else {
         setShowError(true);
         setTimeout(() => setShowError(false), 3000); // auto-hide after 3s
       }
@@ -74,7 +74,7 @@ const Login: React.FC = () => {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="username" className="block text-sm font-medium">
                 Username
               </label>
               <input
@@ -88,7 +88,7 @@ const Login: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium">
                 Password
               </label>
               <input
@@ -108,7 +108,7 @@ const Login: React.FC = () => {
               Sign In
             </button>
 
-            <div className="flex justify-between items-center text-sm text-gray-600 mt-2">
+            <div className="flex justify-between items-center text-sm mt-2">
               <a href="#" className="hover:underline">Forgot password?</a>
               <a href="#" className="hover:underline">Don't have an account?</a>
             </div>

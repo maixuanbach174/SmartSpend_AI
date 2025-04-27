@@ -1,11 +1,13 @@
+from contextlib import asynccontextmanager
+
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import account, activity, voice
-from .dependencies import get_query_token
-from .internal import admin
-from .core.db import create_database, engine
-from contextlib import asynccontextmanager
+from app.routers import account, activity, voice, auth
+from app.dependencies import get_query_token
+from app.internal import admin
+from app.core.db import create_database, engine
 
 
 @asynccontextmanager
@@ -26,5 +28,6 @@ app.add_middleware(
 )
 
 app.include_router(router=admin.router)
+app.include_router(router=auth.router)
 app.include_router(router=account.router)
 app.include_router(router=activity.router)

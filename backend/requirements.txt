@@ -6,10 +6,13 @@ sqlmodel==0.0.24
 uvicorn==0.34.0
 pydantic-settings==2.0.0
 python-multipart
+pyjwt
+Bcrypt
 openai
 llama-index
 pydantic
 python-dotenv
 aiofiles
 speechrecognition
+passlib
 git+https://github.com/openai/whisper.git
