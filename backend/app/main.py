@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import account, activity, voice
-
 from .dependencies import get_query_token
 from .internal import admin
 from .core.db import create_database, engine
@@ -16,6 +16,14 @@ async def lifespan(app: FastAPI):
 
 # app = FastAPI(dependencies=[Depends(get_query_token)], lifespan=lifespan)
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(router=admin.router)
 app.include_router(router=account.router)
